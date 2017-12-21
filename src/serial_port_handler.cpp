@@ -49,6 +49,13 @@ bool read_msg(std::string &value, int &status)
 		ROS_WARN("Serial port not opened. Try to open again ..");
 		return false;
 	}
+	uint8_t head = 0;
+	while(true)
+	{	
+		my_serial.read(head);
+		ROS_INFO("Received head: %d", head);
+	}
+	
 
 	size_t n_size = my_serial.readline(value);
 	if (n_size == 0) {												//读取空的数据将返回
