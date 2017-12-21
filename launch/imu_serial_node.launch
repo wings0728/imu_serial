@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="imu_serial" name="imu_serial_node" type="imu_serial_node" output="screen">
+		<param name="port" value="/dev/ttyUSB0"/>
+		<param name="baud_rate" value="115200"/>
+	</node>
+</launch>
