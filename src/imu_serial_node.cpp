@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	pn.getParam("port", port);
 	pn.getParam("baud_rate", baud_rate);
 
-	ros::Rate r(30); 	//20赫兹
+	ros::Rate r(200); 	//20赫兹
 	
 	bool ret = initSerial(port, baud_rate); 	//串口初始化
 	if (!ret) return 0;							//初始化不成功直接退出
