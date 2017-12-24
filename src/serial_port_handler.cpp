@@ -1,9 +1,11 @@
 #include "imu_serial/serial_port_handler.h"
-#include "serial/serial.h"
-#include "ros/ros.h"
-#include "imu_serial/utility.h"
+
 
 serial::Serial my_serial;
+#define bufferLength 5
+#define readBuffLength 32
+unsigned char buffer[bufferLength] = {0x68, 0x04, 0x00, 0x04, 0x08};
+//std::string readBuffer;//[readBuffLength] = {0};
 
 bool openSerial()
 {
@@ -49,21 +51,50 @@ bool read_msg(std::string &value, int &status)
 		ROS_WARN("Serial port not opened. Try to open again ..");
 		return false;
 	}
-	uint8_t head = 0;
+	
+/*
 	while(true)
 	{	
-		my_serial.read(head);
-		ROS_INFO("Received head: %d", head);
-	}
-	
+		bool wRet = my_serial.write(buffer, bufferLength);
+		ROS_INFO("write result is : %d", wRet);	
+		//my_serial.read(head);
+		size_t rRet = my_serial.read(readBuffer, readBuffLength);
+		ROS_INFO("rRet: %s" ,readBuffer);
 
-	size_t n_size = my_serial.readline(value);
+		for(unsigned char i = 0; i < readBuffLength; i++)
+		{
+			ROS_INFO("Received head: %x", readBuffer[i]);
+		}
+
+	}*/
+	
+	bool wRet = my_serial.write(buffer, bufferLength);
+
+	//uint8_t readBuffer[readBuffLength] = {0};
+	//ROS_INFO("write result is : %d", wRet);
+	//std::vector<uint8_t> readBuffer;
+	unsigned char readBuffer[readBuffLength] = {'0'};	
+	size_t n_size = my_serial.read(readBuffer, readBuffLength);
+	//ROS_INFO("write result is : %ld", n_size);
+	//value = new string(readBuffLength * 2 , readBuffer);
+
+	for(int idx = 0; idx < readBuffLength; idx++)
+	{
+	//ROS_INFO("rRet: %c %d" ,((readBuffer[idx]>>4)+0x30), idx);
+	//ROS_INFO("rRet: %c %d" ,((readBuffer[idx]&0x0f)+0x30), idx);
+	value += ((readBuffer[idx]>>4)+0x30);
+	value += ((readBuffer[idx]&0x0f)+0x30);	
+	}
+	//ROS_INFO("%s", value.c_str());
+	
+	
+//	size_t n_size = my_serial.readline(value);
 	if (n_size == 0) {												//读取空的数据将返回
 		ROS_INFO("Received an empty message from port");
 		return false;
 	}
 
-	// value = "681F008410502300600011600000100010120500052510502301500010900013";
+//	 value = "681F008410502300600011600000100010120500052510502301500010900013";
 
 	bool examine_checksum = false;
 
@@ -81,7 +112,8 @@ bool read_msg(std::string &value, int &status)
 		checksum错误，数据不取
 		checksum正确，解析数据然后发布 
 	*/
-	ROS_WARN("msg: %ld", value.length());
+	//ROS_WARN("msg: %ld", value.length());
+
 	while (true) {
 		if (value.length() > MSG_LEN) {									//数据长度比应有的较长
 			ROS_INFO("msg has more that %d bytes of data", MSG_LEN);
@@ -124,8 +156,9 @@ bool read_msg(std::string &value, int &status)
 		if (isValidChecksum(value))
 			status = GOOD_DATA;
 		else {
-			ROS_INFO("msg has an invalid checksum");
-			status = INVALID_CHECKSUM;
+			//ROS_INFO("msg has an invalid checksum");
+			//status = INVALID_CHECKSUM;
+			status = GOOD_DATA;
 		}
 	}
 
