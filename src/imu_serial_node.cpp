@@ -9,9 +9,12 @@
 #include "imu_serial/MadgwickAHRS.h"
 #include <sys/time.h>
 #include <sensor_msgs/Imu.h>
+#include <math.h>
 
-Madgwick filter;
-
+#define kD2R_2 0.0087266465f
+// Madgwick filter;
+double rpy_2[3] = {0};
+double w,x,y,z;
 
 int main(int argc, char **argv)
 {
@@ -26,14 +29,14 @@ int main(int argc, char **argv)
 	pn.getParam("port", port);
 	pn.getParam("baud_rate", baud_rate);
 
-	ros::Rate r(200); 	//20赫兹
+	ros::Rate r(20); 	//20赫兹
 	
 	bool ret = initSerial(port, baud_rate); 	//串口初始化
 	if (!ret) return 0;							//初始化不成功直接退出
-	struct timeval currentTime, lastTime;
+	// struct timeval currentTime, lastTime;
 	
 	//gettimeofday(&currentTime, NULL);
-        gettimeofday(&lastTime, NULL);
+        // gettimeofday(&lastTime, NULL);
 	while (ros::ok())
 	{
 		int status;			//接收到的数据状态，见utility.h
@@ -57,14 +60,16 @@ int main(int argc, char **argv)
 					// imu_data.gyro_x = gx;
 					// imu_data.gyro_y = gy;
 					// imu_data.gyro_z = gz;
-					gettimeofday(&currentTime, NULL);
-					double csec = (double)currentTime.tv_sec + ((double)currentTime.tv_usec)/1000000.0;
-					double lsec = (double)lastTime.tv_sec + ((double)lastTime.tv_usec)/1000000.0;
-					double freq = (csec - lsec);
-					filter.invSampleFreq = freq;
-					lastTime.tv_sec =  currentTime.tv_sec;
-					lastTime.tv_usec = currentTime.tv_usec;
-					filter.updateIMU(gx, gy, gz, ax, ay, az);
+
+					// gettimeofday(&currentTime, NULL);
+					// double csec = (double)currentTime.tv_sec + ((double)currentTime.tv_usec)/1000000.0;
+					// double lsec = (double)lastTime.tv_sec + ((double)lastTime.tv_usec)/1000000.0;
+					// double freq = (csec - lsec);
+					// filter.invSampleFreq = freq;
+					// lastTime.tv_sec =  currentTime.tv_sec;
+					// lastTime.tv_usec = currentTime.tv_usec;
+					// filter.updateIMU(gx, gy, gz, ax, ay, az);
+
 
 					imu_msg.header.stamp    = ros::Time::now();
 					imu_msg.header.frame_id = "imu1_link";
@@ -96,10 +101,19 @@ int main(int argc, char **argv)
 					imu_msg.linear_acceleration_covariance[7] = 0;
 					imu_msg.linear_acceleration_covariance[8] = 0.04;
 
-					imu_msg.orientation.w = filter.q0;
-					imu_msg.orientation.x = filter.q1;
-					imu_msg.orientation.y = filter.q2;
-					imu_msg.orientation.z = filter.q3;
+					rpy_2[0] = roll * kD2R_2;
+					rpy_2[1] = pitch * kD2R_2;
+					rpy_2[2] = yaw * kD2R_2;
+
+					w = cos(rpy_2[0])*cos(rpy_2[1])*cos(rpy_2[2]) + sin(rpy_2[0])*sin(rpy_2[1])*sin(rpy_2[2]);
+					x = sin(rpy_2[0])*cos(rpy_2[1])*cos(rpy_2[2]) + cos(rpy_2[0])*sin(rpy_2[1])*sin(rpy_2[2]);
+					y = cos(rpy_2[0])*sin(rpy_2[1])*cos(rpy_2[2]) + sin(rpy_2[0])*cos(rpy_2[1])*sin(rpy_2[2]);
+					z = cos(rpy_2[0])*cos(rpy_2[1])*sin(rpy_2[2]) + sin(rpy_2[0])*sin(rpy_2[1])*cos(rpy_2[2]);
+
+					imu_msg.orientation.w = w;
+					imu_msg.orientation.x = x;
+					imu_msg.orientation.y = y;
+					imu_msg.orientation.z = z;
 
 					//  imu_msg.orientation.x = imu.mx;
 					//  imu_msg.orientation.y = imu.my;
