@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 					//  imu_msg.orientation.y = imu.my;
 					//  imu_msg.orientation.z = imu.mz;
 
-					imu_msg.orientation_covariance[0] = filter.getYaw();
+					imu_msg.orientation_covariance[0] = 0.0025;
 					imu_msg.orientation_covariance[1] = 0;
 					imu_msg.orientation_covariance[2] = 0;
 					imu_msg.orientation_covariance[3] = 0;
