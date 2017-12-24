@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	pn.getParam("port", port);
 	pn.getParam("baud_rate", baud_rate);
 
-	ros::Rate r(10); 	//20赫兹
+	ros::Rate r(30); 	//20赫兹
 	
 	bool ret = initSerial(port, baud_rate); 	//串口初始化
 	if (!ret) return 0;							//初始化不成功直接退出
@@ -57,13 +57,13 @@ int main(int argc, char **argv)
 					// imu_data.gyro_x = gx;
 					// imu_data.gyro_y = gy;
 					// imu_data.gyro_z = gz;
-					// gettimeofday(&currentTime, NULL);
-					// double csec = (double)currentTime.tv_sec + ((double)currentTime.tv_usec)/1000000.0;
-					// double lsec = (double)lastTime.tv_sec + ((double)lastTime.tv_usec)/1000000.0;
-					// double freq = (csec - lsec);
-					filter.invSampleFreq = 0.1;
-					// lastTime.tv_sec =  currentTime.tv_sec;
-					// lastTime.tv_usec = currentTime.tv_usec;
+					gettimeofday(&currentTime, NULL);
+					double csec = (double)currentTime.tv_sec + ((double)currentTime.tv_usec)/1000000.0;
+					double lsec = (double)lastTime.tv_sec + ((double)lastTime.tv_usec)/1000000.0;
+					double freq = (csec - lsec);
+					filter.invSampleFreq = freq;
+					lastTime.tv_sec =  currentTime.tv_sec;
+					lastTime.tv_usec = currentTime.tv_usec;
 					filter.updateIMU(gx, gy, gz, ax, ay, az);
 
 					imu_msg.header.stamp    = ros::Time::now();
