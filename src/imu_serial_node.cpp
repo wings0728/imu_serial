@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 					imu_msg.orientation_covariance[7] = 0;
 					imu_msg.orientation_covariance[8] = 0.0025;
 					//gettimeofday(&lastTime, NULL);
-					//ROS_INFO("filter: %f f: %f",filter.getYaw(), freq);
+					ROS_INFO("yaw: %f",yaw);
 					imu_pub.publish(imu_msg);		//发布陀螺仪信息
 
 				}
